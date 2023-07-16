@@ -1,7 +1,6 @@
 import numpy as np
 
 
-# set up the environment
 def get_state(row, col):
     if row != 3:
         return 'ground'
@@ -64,11 +63,10 @@ def policy_evaluation(value, policy):
                     continue
                 row, col, reward = get_next_state(i, j, policy[(i, j)])
                 new_value = reward + value[row, col]
-                delta += abs(new_value - value[i, j])
+                delta = max(delta, abs(new_value - value[i, j]))
                 value[i, j] = new_value
-        if delta / (4 * 12) < 1.5:
+        if delta / (4 * 12) < 1:
             break
-    return value
 
 
 def policy_improvement(value, policy):
@@ -78,26 +76,21 @@ def policy_improvement(value, policy):
             if get_state(i, j) == 'trap' or get_state(i, j) == 'terminal':
                 continue
             old_action = policy[(i, j)]
-            row, col, reward = get_next_state(i, j, old_action)
-            max_value = reward + value[row, col]
-            best_action = old_action
-            for action in ['up', 'down', 'left', 'right']:
+            action_list = ['up', 'down', 'left', 'right']
+            action_value = []
+            for action in action_list:
                 row, col, reward = get_next_state(i, j, action)
-                new_value = reward + value[row, col]
-                if new_value > max_value:
-                    max_value = new_value
-                    best_action = action
-            policy[(i, j)] = best_action
-            if old_action != best_action:
+                action_value.append(reward + value[row, col])
+            policy[(i, j)] = action_list[np.argmax(action_value)]
+            if old_action != policy[(i, j)]:
                 policy_stable = False
-    return policy, policy_stable
+    return policy_stable
 
 
-def policy_iteration(value, policy):
+def value_iteration(value, policy):
     while True:
-        value = policy_evaluation(value, policy)
-        policy, policy_stable = policy_improvement(value, policy)
-        if policy_stable:
+        policy_evaluation(value, policy)
+        if policy_improvement(value, policy):
             break
 
 
@@ -117,14 +110,14 @@ def print_value(value):
             if get_state(i, j) == 'trap' or get_state(i, j) == 'terminal':
                 print(get_state(i, j), end='\t')
             else:
-                print(value[i, j], end='\t')
+                print('%.2f' % value[i, j], end='\t')
         print()
 
 
 def main():
     value = init_value()
     policy = init_policy()
-    policy_iteration(value, policy)
+    value_iteration(value, policy)
     print_policy(policy)
     print_value(value)
 
