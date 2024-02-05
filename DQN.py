@@ -3,14 +3,17 @@ import torch.nn.functional as F
 import random
 import math
 from itertools import count
-from utils import Transition, ReplayMemory
+from utils import ReplayMemory
+from collections import namedtuple
 
+
+Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 
 class DQN_Agent:
-    def __init__(self, model, optimizer, env):
+    def __init__(self, model, optimizer, env, **kwargs):
         self.model = model
         self.optimizer = optimizer
-        self.memory = ReplayMemory(10000)
+        self.memory = ReplayMemory(capacity=10000, Transition=Transition)
         self.env = env
 
     def select_action(self, state, epsilon):
@@ -30,9 +33,7 @@ class DQN_Agent:
         non_final_next_states = torch.stack([torch.tensor(s, dtype=torch.float32) for s in batch.next_state if s is not None])
 
         state_batch = torch.stack([torch.tensor(s, dtype=torch.float32) for s in batch.state])
-
         action_batch = torch.tensor([a for a in batch.action], dtype=torch.long).view(-1, 1)
-
         reward_batch = torch.cat([torch.tensor([r], dtype=torch.float32) for r in batch.reward])
 
         state_action_values = self.model(state_batch).gather(1, action_batch)

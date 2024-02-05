@@ -1,14 +1,22 @@
 from collections import OrderedDict
 from cartpole import CartPoleEnv
 from DQN import DQN_Agent
+from SARSA import SARSA_Agent
 from model import SimpleModel
 import torch.optim as optim
+import argparse
+
 
 class RLTrainer:
-    def __init__(self, env, algorithm, config):
+    def __init__(self, model, optimizer, env, config):
         self.env = env
-        self.algorithm = algorithm
+        self.model = model
         self.config = config
+        self.optimizer = optimizer
+        self.algorithm = self._get_algorithm(config['algorithm_name'])
+    
+    def _get_algorithm(self, algorithm_name):
+        return globals()[algorithm_name + "_Agent"](self.model, self.optimizer, self.env, **self.config)
 
     def train(self):
         self.algorithm.train(**self.config['train_args'])
@@ -21,9 +29,10 @@ class RLTrainer:
         self.train()
         self.test()
 
-def main():
+def main(args):
     config = OrderedDict(
         algorithm_args = OrderedDict(
+            algorithm_name = args.algorithm,
             train_args = OrderedDict(
                 num_episodes=200,
                 batch_size=128,
@@ -48,9 +57,18 @@ def main():
     env = CartPoleEnv()
     model = SimpleModel(**config['model_args'])
     optimizer = optim.Adam(model.parameters(), lr=config['optimizer_args']['lr'])
-    algorithm = DQN_Agent(model, optimizer, env)
-    trainer = RLTrainer(env, algorithm, config['algorithm_args'])
+    trainer = RLTrainer(
+        model=model,
+        optimizer=optimizer,
+        env=env,
+        config=config['algorithm_args']
+    )
 
     trainer.run()
 
-main()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--algorithm")
+    args = parser.parse_args()
+    main(args=args)
