@@ -42,6 +42,7 @@ class DQN_Agent:
 
         expected_state_action_values = (next_state_values * gamma) + reward_batch
 
+        # formula: Q(s, a) <- r + γ * max_a' Q(s', a')
         loss = F.mse_loss(state_action_values, expected_state_action_values.unsqueeze(1)) # NOTE: do not use smooth_l1_loss, maybe some theoretical reason. guess: deeplearning model
 
         self.optimizer.zero_grad()
