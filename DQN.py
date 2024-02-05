@@ -1,34 +1,17 @@
 import torch
-import torch.optim as optim
 import torch.nn.functional as F
-from model import SimpleModel
-from cartpole import CartPoleEnv
-from collections import namedtuple, deque
 import random
 import math
 from itertools import count
+from utils import Transition, ReplayMemory
 
-Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
-
-class ReplayMemory:
-    def __init__(self, capacity):
-        self.memory = deque([],maxlen=capacity)
-
-    def push(self, *args):
-        self.memory.append(Transition(*args))
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
 
 class DQN_Agent:
-    def __init__(self, input_size, output_size, learning_rate=0.001):
-        self.model = SimpleModel(input_size, output_size)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+    def __init__(self, model, optimizer, env):
+        self.model = model
+        self.optimizer = optimizer
         self.memory = ReplayMemory(10000)
-        self.env = CartPoleEnv()
+        self.env = env
 
     def select_action(self, state, epsilon):
         if random.random() > epsilon:
@@ -37,7 +20,7 @@ class DQN_Agent:
         else:
             return torch.tensor([[random.randrange(2)]], dtype=torch.long)
 
-    def optimize_model(self, batch_size, gamma=0.9):
+    def optimize_model(self, batch_size, gamma=0.999):
         if len(self.memory) < batch_size:
             return
         transitions = self.memory.sample(batch_size)
@@ -59,13 +42,13 @@ class DQN_Agent:
 
         expected_state_action_values = (next_state_values * gamma) + reward_batch
 
-        loss = F.mse_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+        loss = F.mse_loss(state_action_values, expected_state_action_values.unsqueeze(1)) # NOTE: do not use smooth_l1_loss, maybe some theoretical reason. guess: deeplearning model
 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200):
+    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200, **kwargs):
         for i_episode in range(num_episodes):
             state = self.env.reset()
             for t in count():
@@ -80,7 +63,7 @@ class DQN_Agent:
                 if done:
                     break
 
-    def test(self, num_episodes=10):
+    def test(self, num_episodes=10, **kwargs):
         for i_episode in range(num_episodes):
             state = self.env.reset()
             total_reward = 0
