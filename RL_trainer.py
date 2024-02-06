@@ -61,6 +61,9 @@ def main(args):
             input_size=4,
             output_size=2,
         ),
+        decode_args = OrderedDict(
+            strategy='EpsilonGreedy',
+        )
     )
 
     env = CartPoleEnv()
@@ -78,6 +81,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--algorithm")
+    parser.add_argument("--algorithm", default="DQN")
+    parser.add_argument("--strategy", default="EpsilonGreedy")
     args = parser.parse_args()
     main(args=args)

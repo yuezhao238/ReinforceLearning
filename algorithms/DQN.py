@@ -18,9 +18,6 @@ class DQN_Agent(Base_Agent):
         self.memory = ReplayMemory(capacity=10000, Transition=Transition)
         self.env = env
 
-    def select_action(self, state, epsilon):
-        return EpsilonGreedy(self.model, state, epsilon)
-
     def optimize_model(self, batch_size, gamma=0.999):
         """
             principle:
@@ -53,12 +50,12 @@ class DQN_Agent(Base_Agent):
         loss.backward()
         self.optimizer.step()
 
-    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200, **kwargs):
+    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200, n=2, **kwargs):
         for i_episode in range(num_episodes):
             state = self.env.reset()
             for t in count():
                 epsilon = epsilon_end + (epsilon_start - epsilon_end) * math.exp(-1. * i_episode / epsilon_decay)
-                action = self.select_action(state, epsilon)
+                action = self.select_action(state, epsilon, n)
                 next_state, reward, done, _ = self.env.step(action.item())
                 if done:
                     next_state = None
@@ -67,6 +64,3 @@ class DQN_Agent(Base_Agent):
                 self.optimize_model(batch_size, gamma)
                 if done:
                     break
-
-    def test(self, num_episodes=10, **kwargs):
-        super().test(num_episodes, **kwargs)
