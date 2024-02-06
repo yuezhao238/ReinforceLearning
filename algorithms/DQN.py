@@ -1,10 +1,10 @@
 import torch
 import torch.nn.functional as F
-import random
 import math
 from itertools import count
 from collections import namedtuple
 from utils import ReplayMemory
+from algorithms.decode import EpsilonGreedy
 
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
@@ -17,11 +17,7 @@ class DQN_Agent:
         self.env = env
 
     def select_action(self, state, epsilon):
-        if random.random() > epsilon:
-            with torch.no_grad():
-                return self.model(torch.tensor(state, dtype=torch.float32)).max(0)[1].view(1, 1)
-        else:
-            return torch.tensor([[random.randrange(2)]], dtype=torch.long)
+        return EpsilonGreedy(self.model, state, epsilon)
 
     def optimize_model(self, batch_size, gamma=0.999):
         """
