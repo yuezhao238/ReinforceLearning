@@ -4,7 +4,6 @@ import math
 from itertools import count
 from collections import namedtuple
 from utils import ReplayMemory
-from algorithms.decode import EpsilonGreedy
 from algorithms import Base_Agent
 
 

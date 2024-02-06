@@ -2,7 +2,7 @@ import torch
 import random
 
 
-def EpsilonGreedy(model, state, epsilon, n):
+def EpsilonGreedy(model, state, epsilon, n, **kwargs):
     """
         principle:
         ε-greedy = argmax(Q(s, a)) with probability 1 - ε

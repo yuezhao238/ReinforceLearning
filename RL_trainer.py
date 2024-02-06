@@ -65,6 +65,10 @@ def main(args):
         ),
         decode_args = OrderedDict(
             strategy='EpsilonGreedy',
+            epsolon=0.9,
+            n=env.action_space,
+            c=0.5,
+            temperature=0.7,
         )
     )
 
