@@ -53,7 +53,7 @@ class SARSA_Agent:
         loss.backward()
         self.optimizer.step()
 
-    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200):
+    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200, **kwargs):
         for i_episode in range(num_episodes):
             state = self.env.reset()
             action = self.select_action(state, epsilon_start)

@@ -1,8 +1,10 @@
 from collections import OrderedDict
 from environments.cartpole import CartPoleEnv
-from algorithms.DQN import DQN_Agent
-from algorithms.SARSA import SARSA_Agent
-from algorithms.SARSALambda import SARSALambda_Agent
+from algorithms import (
+    DQN_Agent,
+    SARSA_Agent,
+    SARSALambda_Agent,
+)
 from models.model import SimpleModel
 import torch.optim as optim
 import argparse
@@ -41,7 +43,7 @@ def main(args):
                 epsilon_start=0.9,
                 epsilon_end=0.05,
                 epsilon_decay=200,
-                sarsa_lambda=0.9,
+                lambda_=0.9,
             ),
             test_args = OrderedDict(
                 num_episodes=10,

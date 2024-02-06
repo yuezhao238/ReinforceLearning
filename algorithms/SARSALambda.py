@@ -62,7 +62,7 @@ class SARSALambda_Agent:
 
         self.optimizer.step()
 
-    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200):
+    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200, **kwargs):
         for i_episode in range(num_episodes):
             for param in self.model.parameters():
                 self.eligibility_trace[param] = torch.zeros_like(param)
