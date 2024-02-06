@@ -28,7 +28,7 @@ class RLTrainer:
         return globals()[algorithm_name + "_Agent"](self.model, self.optimizer, self.env, **self.config)
 
     def train(self):
-        self.algorithm.train(**self.config['train_args'])
+        self.algorithm.train(**self.config['train_args'], n=self.env.action_space)
 
     def test(self):
         self.algorithm.test(**self.config['test_args'])
@@ -39,6 +39,8 @@ class RLTrainer:
         self.test()
 
 def main(args):
+    env = CartPoleEnv()
+
     config = OrderedDict(
         algorithm_name = args.algorithm,
         train_args = OrderedDict(
@@ -58,15 +60,14 @@ def main(args):
             alpha=0.99,
         ),
         model_args = OrderedDict(
-            input_size=4,
-            output_size=2,
+            input_size=env.observation_space,
+            output_size=env.action_space,
         ),
         decode_args = OrderedDict(
             strategy='EpsilonGreedy',
         )
     )
 
-    env = CartPoleEnv()
     model = SimpleModel
     optimizer = optim.RMSprop
     trainer = RLTrainer(
