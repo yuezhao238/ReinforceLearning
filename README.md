@@ -14,3 +14,10 @@ $E'(s, a) = \gamma \cdot \lambda \cdot E(s, a) + 1$
 $V'(s) = V(s) + \alpha \cdot \left(r + \gamma \cdot V\left(s'\right) - V\left(s\right)\right)$
 
 $\theta' = \theta + \alpha \cdot \left(r + \gamma \cdot V\left(s'\right) - V\left(s\right)\right) \cdot \nabla \log \pi(a|s, \theta)$
+
+## A2C
+$A(s, a) = Q(s, a) - V(s)$
+
+$V'(s) = V(s) + \alpha \cdot \left(r + \gamma \cdot V\left(s'\right) - V\left(s\right)\right)$
+
+$\theta' = \theta + \alpha \cdot A(s, a) \cdot \nabla \log \pi(a|s, \theta)$
