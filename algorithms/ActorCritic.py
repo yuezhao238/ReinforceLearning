@@ -26,6 +26,10 @@ class ActorCritic_Agent:
             return torch.tensor([[random.randrange(2)]], dtype=torch.long)
 
     def optimize_model(self, batch_size, gamma=0.999):
+        """
+            principle:
+            
+        """
         if len(self.memory) < batch_size:
             return
         transitions = self.memory.sample(batch_size)

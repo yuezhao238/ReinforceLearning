@@ -24,6 +24,11 @@ class SARSA_Agent:
             return torch.tensor([[random.randrange(2)]], dtype=torch.long)
 
     def optimize_model(self, batch_size, gamma=0.999):
+        """
+            principle:
+            Q'(s, a) = Q(s, a) + α * [r + γ * Q(s', a') - Q(s, a)]
+                     = (1 - α) * Q(s, a) + α * [r + γ * Q(s', a')]
+        """
         if len(self.memory) < batch_size:
             return
         transitions = self.memory.sample(batch_size)
@@ -44,9 +49,7 @@ class SARSA_Agent:
 
         expected_state_action_values = (next_state_values * gamma) + reward_batch
 
-        # formula: Q'(s, a) = Q(s, a) + α * [r + γ * Q(s', a') - Q(s, a)]
-        #                   = (1 - α) * Q(s, a) + α * [r + γ * Q(s', a')]
-        # Q(s, a) is state_action_values, Q(s', a') is next_state_values
+
         loss = F.mse_loss(state_action_values, expected_state_action_values.unsqueeze(1))
 
         self.optimizer.zero_grad()
