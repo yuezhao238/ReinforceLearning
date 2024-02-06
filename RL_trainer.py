@@ -2,6 +2,7 @@ from collections import OrderedDict
 from cartpole import CartPoleEnv
 from DQN import DQN_Agent
 from SARSA import SARSA_Agent
+from SARSALambda import SARSALambda_Agent
 from model import SimpleModel
 import torch.optim as optim
 import argparse

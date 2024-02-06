@@ -9,12 +9,15 @@ from utils import ReplayMemory
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'next_action', 'reward'))
 
-class SARSA_Agent:
-    def __init__(self, model, optimizer, env, **kwargs):
+class SARSALambda_Agent:
+    def __init__(self, model, optimizer, env, lambda_=0.9, **kwargs):
         self.model = model
         self.optimizer = optimizer
         self.memory = ReplayMemory(capacity=10000, Transition=Transition)
         self.env = env
+        self.lambda_ = lambda_
+        self.eligibility_trace = {name: torch.zeros_like(param, memory_format=torch.preserve_format) 
+                                  for name, param in self.model.named_parameters()}
 
     def select_action(self, state, epsilon):
         if random.random() > epsilon:
@@ -44,17 +47,26 @@ class SARSA_Agent:
 
         expected_state_action_values = (next_state_values * gamma) + reward_batch
 
-        # formula: Q'(s, a) = Q(s, a) + α * [r + γ * Q(s', a') - Q(s, a)]
-        #                   = (1 - α) * Q(s, a) + α * [r + γ * Q(s', a')]
+        # formula: Q'(s, a) = Q(s, a) + α * E(s, a) * [r + γ * Q(s', a') - Q(s, a)]
+        #                   = [1 - α * E(s, a)] * Q(s, a) + [α * E(s, a)] * [r + γ * Q(s', a')]
         # Q(s, a) is state_action_values, Q(s', a') is next_state_values
         loss = F.mse_loss(state_action_values, expected_state_action_values.unsqueeze(1))
 
         self.optimizer.zero_grad()
         loss.backward()
+        
+        with torch.no_grad():
+            for param in self.model.parameters():
+                self.eligibility_trace[param] = gamma * self.lambda_ * self.eligibility_trace[param] + param.grad
+                param.grad = self.eligibility_trace[param]
+
         self.optimizer.step()
 
     def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200):
         for i_episode in range(num_episodes):
+            for param in self.model.parameters():
+                self.eligibility_trace[param] = torch.zeros_like(param)
+
             state = self.env.reset()
             action = self.select_action(state, epsilon_start)
             for t in count():
