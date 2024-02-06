@@ -11,8 +11,8 @@ Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'
 
 class DQN_Agent:
     def __init__(self, model, optimizer, env, **kwargs):
-        self.model = model
-        self.optimizer = optimizer
+        self.model = model(**kwargs['model_args'])
+        self.optimizer = optimizer(self.model.parameters(), **kwargs['optimizer_args'])
         self.memory = ReplayMemory(capacity=10000, Transition=Transition)
         self.env = env
 
