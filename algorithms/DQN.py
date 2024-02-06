@@ -3,8 +3,8 @@ import torch.nn.functional as F
 import random
 import math
 from itertools import count
-from utils import ReplayMemory
 from collections import namedtuple
+from utils import ReplayMemory
 
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))

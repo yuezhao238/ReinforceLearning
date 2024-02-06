@@ -1,11 +1,11 @@
 from collections import OrderedDict
-from environments.cartpole import CartPoleEnv
+from environments import CartPoleEnv
 from algorithms import (
     DQN_Agent,
     SARSA_Agent,
     SARSALambda_Agent,
 )
-from models.model import SimpleModel
+from models import SimpleModel
 import torch.optim as optim
 import argparse
 
