@@ -5,6 +5,7 @@ from algorithms import (
     SARSA_Agent,
     SARSALambda_Agent,
     ActorCritic_Agent,
+    A2C_Agent,
 )
 # from dev import (
 #     A3C_Agent,

@@ -5,12 +5,14 @@ from itertools import count
 from collections import namedtuple
 from utils import ReplayMemory
 from algorithms.decode import EpsilonGreedy
+from algorithms import Base_Agent
 
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 
-class DQN_Agent:
+class DQN_Agent(Base_Agent):
     def __init__(self, model, optimizer, env, **kwargs):
+        super().__init__(model, optimizer, env, **kwargs)
         self.model = model(**kwargs['model_args'])
         self.optimizer = optimizer(self.model.parameters(), **kwargs['optimizer_args'])
         self.memory = ReplayMemory(capacity=10000, Transition=Transition)
@@ -67,14 +69,4 @@ class DQN_Agent:
                     break
 
     def test(self, num_episodes=10, **kwargs):
-        for i_episode in range(num_episodes):
-            state = self.env.reset()
-            total_reward = 0
-            for t in count():
-                action = self.select_action(state, epsilon=0)
-                next_state, reward, done, _ = self.env.step(action.item())
-                total_reward += reward
-                state = next_state
-                if done:
-                    print(f"Test Episode {i_episode} finished after {t+1} timesteps with total reward {total_reward}.")
-                    break
+        super().test(num_episodes, **kwargs)
