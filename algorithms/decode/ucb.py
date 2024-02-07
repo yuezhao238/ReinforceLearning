@@ -2,13 +2,17 @@ import torch
 import random
 
 
-def UCB(model, state, c, n):
-    """
+class UCB:
+    def __init__(self, **kwargs):
+        """
         principle:
         UCB(s, a) = Q(s, a) + c * sqrt(log(n) / N(s, a))
-    """
-    with torch.no_grad():
-        q_values = model(torch.tensor(state, dtype=torch.float32))
-        exploration_bonus = c * torch.sqrt(torch.log(n) / q_values)
-        return q_values + exploration_bonus
-    
+        """
+        self.c = kwargs['c']
+        self.n = torch.tensor(kwargs['n'])
+
+    def __call__(self, model, state, i_episode):
+        with torch.no_grad():
+            q_values = model(torch.tensor(state, dtype=torch.float32))
+            exploration_bonus = self.c * torch.sqrt(torch.log(self.n) / q_values)
+            return torch.argmax(q_values + exploration_bonus).view(1, 1)

@@ -47,9 +47,6 @@ def main(args):
             num_episodes=200,
             batch_size=128,
             gamma=0.999,
-            epsilon_start=0.9,
-            epsilon_end=0.05,
-            epsilon_decay=200,
             lambda_=0.9,
         ),
         test_args = OrderedDict(
@@ -64,8 +61,10 @@ def main(args):
             output_size=env.action_space,
         ),
         decode_args = OrderedDict(
-            strategy='EpsilonGreedy',
-            epsolon=0.9,
+            strategy=args.strategy,
+            epsilon_start=0.9,
+            epsilon_end=0.05,
+            epsilon_decay=200,
             n=env.action_space,
             c=0.5,
             temperature=0.7,

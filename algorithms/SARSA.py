@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-import math
 from itertools import count
 from collections import namedtuple
 from utils import ReplayMemory
@@ -50,14 +49,13 @@ class SARSA_Agent(Base_Agent):
         loss.backward()
         self.optimizer.step()
 
-    def train(self, num_episodes, batch_size=128, gamma=0.999, epsilon_start=0.9, epsilon_end=0.05, epsilon_decay=200, n=2, **kwargs):
+    def train(self, num_episodes, batch_size=128, gamma=0.999, **kwargs):
         for i_episode in range(num_episodes):
             state = self.env.reset()
-            action = self.select_action(state, epsilon_start, n)
+            action = self.select_action(state, i_episode)
             for t in count():
-                epsilon = epsilon_end + (epsilon_start - epsilon_end) * math.exp(-1. * i_episode / epsilon_decay)
                 next_state, reward, done, _ = self.env.step(action.item())
-                next_action = self.select_action(next_state, epsilon, n) if not done else None
+                next_action = self.select_action(next_state, i_episode) if not done else None
                 if done:
                     next_state = None
                 self.memory.push(state, action, next_state, next_action, reward)
