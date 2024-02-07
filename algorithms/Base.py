@@ -25,7 +25,7 @@ class Base_Agent:
             state = self.env.reset()
             total_reward = 0
             for t in count():
-                action = self.select_action(state, i_episode)
+                action, log_prob = self.select_action(state, i_episode)
                 next_state, reward, done, _ = self.env.step(action.item())
                 total_reward += reward
                 state = next_state

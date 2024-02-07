@@ -21,10 +21,12 @@ class EpsilonGreedy:
             epsilon = self.epsilon_end + (self.epsilon_start - self.epsilon_end) * math.exp(-1. * i_episode / self.epsilon_decay)
             if random.random() > epsilon:
                 with torch.no_grad():
-                    return model(torch.tensor(state, dtype=torch.float32)).max(0)[1].view(1, 1)
+                    logits = model(torch.tensor(state, dtype=torch.float32))
+                    action = torch.argmax(logits).view(1, 1)
+                    return action, torch.tensor([torch.log(max(logits))])
             else:
-                return torch.tensor([[random.randrange(self.n)]], dtype=torch.long)
+                return torch.tensor([[random.randrange(self.n)]], dtype=torch.long), torch.log(torch.tensor([1/self.n], dtype=torch.float32))
         else:
             with torch.no_grad():
-                return model(torch.tensor(state, dtype=torch.float32)).max(0)[1].view(1, 1)
+                return model(torch.tensor(state, dtype=torch.float32)).max(0)[1].view(1, 1), None
     

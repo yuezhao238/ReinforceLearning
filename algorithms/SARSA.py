@@ -52,10 +52,10 @@ class SARSA_Agent(Base_Agent):
     def train(self, num_episodes, batch_size=128, gamma=0.999, **kwargs):
         for i_episode in range(num_episodes):
             state = self.env.reset()
-            action = self.select_action(state, i_episode)
+            action, log_prob = self.select_action(state, i_episode)
             for t in count():
                 next_state, reward, done, _ = self.env.step(action.item())
-                next_action = self.select_action(next_state, i_episode) if not done else None
+                next_action, log_prob = self.select_action(next_state, i_episode) if not done else None
                 if done:
                     next_state = None
                 self.memory.push(state, action, next_state, next_action, reward)

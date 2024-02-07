@@ -6,9 +6,11 @@ from algorithms import (
     SARSALambda_Agent,
     ActorCritic_Agent,
     A2C_Agent,
+    PPO_Agent,
 )
 # from dev import (
 #     A3C_Agent,
+#     TRPO_Agent,
 # )
 from models import SimpleModel
 import torch.optim as optim
@@ -48,6 +50,9 @@ def main(args):
             batch_size=128,
             gamma=0.999,
             lambda_=0.9,
+            eps_clip=0.2,
+            gae_lambda=0.95,
+            entropy_beta=0.01,
         ),
         test_args = OrderedDict(
             num_episodes=10,

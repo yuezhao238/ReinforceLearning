@@ -4,11 +4,11 @@ from itertools import count
 from collections import namedtuple
 from utils import ReplayMemory
 from algorithms import Base_Agent
+from torch.distributions import Categorical
 
+Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward', 'log_prob'))
 
-Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
-
-class A2C_Agent(Base_Agent):
+class PPO_Agent(Base_Agent):
     def __init__(self, model, optimizer, env, **kwargs):
         super().__init__(model, optimizer, env, **kwargs)
         self.actor_model = model(**kwargs['model_args'], AC='actor')
@@ -17,41 +17,52 @@ class A2C_Agent(Base_Agent):
         self.critic_optimizer = optimizer(self.critic_model.parameters(), **kwargs['optimizer_args'])
         self.memory = ReplayMemory(capacity=10000, Transition=Transition)
         self.env = env
+        self.eps_clip = kwargs['train_args']['eps_clip']
+        self.gae_lambda = kwargs['train_args']['gae_lambda']
+        self.entropy_beta = kwargs['train_args']['entropy_beta']
+    
+    def compute_gae_and_returns(self, rewards, values, gamma=0.999):
+        gae = 0
+        returns = []
+        advantages = torch.zeros_like(rewards)
+        for t in reversed(range(len(rewards))):
+            delta = rewards[t] + (gamma * values[t + 1] if t + 1 < len(rewards) else 0) - values[t]
+            gae = delta + gamma * self.gae_lambda * gae
+            advantages[t] = gae
+            returns.insert(0, gae + values[t])
+        returns = torch.tensor(returns, dtype=torch.float32)
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-10)
+        return advantages, returns
 
     def optimize_model(self, batch_size, gamma=0.999):
-        """
-            principle:
-            
-        """
         if len(self.memory) < batch_size:
             return
         transitions = self.memory.sample(batch_size)
         batch = Transition(*zip(*transitions))
 
-        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), dtype=torch.bool)
-        non_final_next_states = torch.stack([torch.tensor(s, dtype=torch.float32) for s in batch.next_state if s is not None])
-
         state_batch = torch.stack([torch.tensor(s, dtype=torch.float32) for s in batch.state])
         action_batch = torch.tensor([a for a in batch.action], dtype=torch.long).view(-1, 1)
         reward_batch = torch.cat([torch.tensor([r], dtype=torch.float32) for r in batch.reward])
+        log_prob_batch = torch.stack(batch.log_prob)
 
         values = self.critic_model(state_batch).squeeze()
-        next_values = torch.zeros(batch_size)
-        next_values[non_final_mask] = self.critic_model(non_final_next_states).squeeze().detach()
-        expected_values = (next_values * gamma) + reward_batch
-        critic_loss = F.mse_loss(values, expected_values)
+        advantages, returns = self.compute_gae_and_returns(reward_batch, values)
+
+        action_probs = self.actor_model(state_batch)
+        dist = Categorical(logits=action_probs)
+        new_log_probs = dist.log_prob(action_batch.squeeze(-1))
+        ratio = (new_log_probs - log_prob_batch).exp()
+        surr1 = ratio * advantages
+        surr2 = torch.clamp(ratio, 1.0 - self.eps_clip, 1.0 + self.eps_clip) * advantages
+        actor_loss = -torch.min(surr1, surr2).mean() - self.entropy_beta * dist.entropy().mean()
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward(retain_graph=True)
+        self.actor_optimizer.step()
+
+        critic_loss = F.mse_loss(values, returns)
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
-
-        state_action_values = self.actor_model(state_batch)
-        action_log_probs = F.log_softmax(state_action_values, dim=-1)
-        action_log_probs = action_log_probs.gather(1, action_batch).squeeze()
-        advantage = expected_values - values.detach()
-        actor_loss = (-action_log_probs * advantage).mean()
-        self.actor_optimizer.zero_grad()
-        actor_loss.backward()
-        self.actor_optimizer.step()
 
     def train(self, num_episodes, batch_size=128, gamma=0.999, **kwargs):
         for i_episode in range(num_episodes):
@@ -61,7 +72,7 @@ class A2C_Agent(Base_Agent):
                 next_state, reward, done, _ = self.env.step(action.item())
                 if done:
                     next_state = None
-                self.memory.push(state, action, next_state, reward)
+                self.memory.push(state, action, next_state, reward, log_prob)
                 state = next_state
                 self.optimize_model(batch_size, gamma)
                 if done:

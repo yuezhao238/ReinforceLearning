@@ -65,10 +65,10 @@ class SARSALambda_Agent(Base_Agent):
                 self.eligibility_trace[param] = torch.zeros_like(param)
 
             state = self.env.reset()
-            action = self.select_action(state, i_episode)
+            action, log_prob = self.select_action(state, i_episode)
             for t in count():
                 next_state, reward, done, _ = self.env.step(action.item())
-                next_action = self.select_action(next_state, i_episode) if not done else None
+                next_action, log_prob = self.select_action(next_state, i_episode) if not done else None
                 if done:
                     next_state = None
                 self.memory.push(state, action, next_state, next_action, reward)

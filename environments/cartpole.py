@@ -1,5 +1,8 @@
 import gym
 
+gym.logger.set_level(40)
+
+
 class CartPoleEnv:
     def __init__(self):
         self.env = gym.make('CartPole-v1')

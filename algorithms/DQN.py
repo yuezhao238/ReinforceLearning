@@ -52,7 +52,7 @@ class DQN_Agent(Base_Agent):
         for i_episode in range(num_episodes):
             state = self.env.reset()
             for t in count():
-                action = self.select_action(state, i_episode)
+                action, log_prob = self.select_action(state, i_episode)
                 next_state, reward, done, _ = self.env.step(action.item())
                 if done:
                     next_state = None

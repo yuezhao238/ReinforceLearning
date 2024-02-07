@@ -14,4 +14,4 @@ class Boltzmann:
             q_values = model(torch.tensor(state, dtype=torch.float32))
             probabilities = torch.nn.functional.softmax(q_values / self.temperature, dim=0)
             action = torch.multinomial(probabilities, 1)
-        return action
+        return action, torch.log(probabilities[action].view(1, 1))

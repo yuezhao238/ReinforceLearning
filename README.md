@@ -1,5 +1,6 @@
 # ReinforceLearning
 FOR STUDY AND RESEARCH, PERFOMANCE NOT GUARANTEED
+
 ## 1. DQN
 $Q'(s, a) = Q(s, a) + \alpha \cdot \left(r + \gamma \cdot \max_{a'}Q\left(s', a'\right) - Q\left(s, a\right)\right)$
 

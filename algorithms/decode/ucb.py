@@ -15,4 +15,5 @@ class UCB:
         with torch.no_grad():
             q_values = model(torch.tensor(state, dtype=torch.float32))
             exploration_bonus = self.c * torch.sqrt(torch.log(self.n) / q_values)
-            return torch.argmax(q_values + exploration_bonus).view(1, 1)
+            action = torch.argmax(q_values + exploration_bonus).view(1, 1)
+            return action, torch.tensor([1], dtype=torch.float32)
