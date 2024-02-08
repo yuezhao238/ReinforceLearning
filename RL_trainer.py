@@ -8,10 +8,10 @@ from algorithms import (
     A2C_Agent,
     PPO_Agent,
 )
-# from dev import (
-#     A3C_Agent,
-#     TRPO_Agent,
-# )
+from dev import (
+    A3C_Agent,
+    TRPO_Agent,
+)
 from models import SimpleModel
 import torch.optim as optim
 import argparse
@@ -53,6 +53,7 @@ def main(args):
             eps_clip=0.2,
             gae_lambda=0.95,
             entropy_beta=0.01,
+            tau=0.95,
         ),
         test_args = OrderedDict(
             num_episodes=10,
