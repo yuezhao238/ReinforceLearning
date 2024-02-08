@@ -8,10 +8,10 @@ from algorithms import (
     A2C_Agent,
     PPO_Agent,
 )
-from dev import (
-    A3C_Agent,
-    TRPO_Agent,
-)
+# from dev import (
+#     A3C_Agent,
+#     TRPO_Agent,
+# )
 from models import SimpleModel
 import torch.optim as optim
 import argparse
